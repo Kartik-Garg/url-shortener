@@ -2,12 +2,17 @@ module url-shortener
 
 go 1.17
 
-require github.com/gofiber/fiber/v2 v2.32.0
-
-require github.com/Valgard/go-pcre v0.0.0-20200510215507-235e400e25e9 // indirect
+require (
+	github.com/go-redis/redis/v8 v8.11.5
+	github.com/gofiber/fiber/v2 v2.32.0
+)
 
 require (
-	github.com/Valgard/godotenv v0.0.0-20200511222744-8873b92a09c5
+	github.com/cespare/xxhash/v2 v2.1.2 // indirect
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
+)
+
+require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/joho/godotenv v1.4.0
 	github.com/klauspost/compress v1.15.0 // indirect
