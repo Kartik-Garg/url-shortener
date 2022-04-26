@@ -13,7 +13,7 @@ RUN go build -o main.
 #stage 2
 FROM alpine
 
-RUN adduser -S -D -H /app appuser
+RUN adduser -S -D -H -h /app appuser
 #making user as appuser
 USER appuser
 #copy from current to app folder
