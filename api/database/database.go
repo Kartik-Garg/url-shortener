@@ -6,7 +6,11 @@ import(
 	"os"
 
 )
-
+/*context are used to add "context"/ properties to the project
+like a timeout, deadline, etc. for eg we can have a timeout conetxt, where if an API does not respond
+for a long time, it will end execution 
+@conext.Background - used to return the empty context where values can actually be added
+*/ 
 var Ctx = context.Background()
 
 func createClient(dbNo int) *redis.Client{
