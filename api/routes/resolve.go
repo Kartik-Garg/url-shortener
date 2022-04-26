@@ -16,21 +16,22 @@ func ResolveUrl(c *fiber.Ctx) error{
 	//in it
 	url := c.Params("url")
 
-	r := database.createClient(0)
+	r := database.CreateClient(0)
 	//defer basically that execute it at the last of call stack
 	defer r.Close()
 
 	//running functions on db
 	//redis is key value db, for every url(key) we get the information
 	value, err := r.Get(database.Ctx, url).Result()
+	//if we get value as nil, it means it does not exist in db
 	if err == redis.Nil{
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error":"short not found in DB!"})
-	}	
-	else if err!=nil{
+	}	else if err!=nil{
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error":"can not connect to DB",})
 	}
 
-	rInr := database.createClient(1)
+	//else we create a clien and then redirect it to the main link
+	rInr := database.CreateClient(1)
 	defer rInr.Close()
 
 	_ = rInr.Incr(database.Ctx, "counter")

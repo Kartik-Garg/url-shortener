@@ -13,7 +13,7 @@ for a long time, it will end execution
 */ 
 var Ctx = context.Background()
 
-func createClient(dbNo int) *redis.Client{
+func CreateClient(dbNo int) *redis.Client{
 	rdb := redis.NewClient(&redis.Options{
 		//to create a new db client we need to pass 3 things to redis
 		Addr:		os.Getenv("DB_ADDR"),
