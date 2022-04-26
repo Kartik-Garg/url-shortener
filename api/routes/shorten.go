@@ -8,7 +8,6 @@ import (
 	"url-shortener/helpers"
 	"github.com/go-redis/redis/v8"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/internal/uuid"
 	"github.com/asaskevich/govalidator"
 )
 
@@ -71,7 +70,7 @@ func ShortenUrl(c *fiber.Ctx) error{
 
 
 	//checking if input is actual URl
-	if !govalidator.isURL(body.URL){
+	if !govalidator.IsURL(body.URL){
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error":"invalid URL"})
 	}
 
