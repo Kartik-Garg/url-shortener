@@ -5,9 +5,10 @@ import (
 	"strconv"
 	"time"
 	"url-shortener/database"
-
+	"url-shortner/helpers"
 	"github.com/go-redis/redis/v8"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/internal/uuid"
 )
 
 //custom data-type
@@ -80,6 +81,45 @@ func ShortenUrl(c *fiber.Ctx) error{
 
 	//enforce HTTP and SSL
 	body.URL = helpers.EnforceHTTP(body.URL)
+
+	//creating custom short url by user
+	var id string
+	if body.CustomShort ==""{
+		id = uuid.New().String()[:6]
+	} else{
+		id = body.CustomShort
+	}
+
+	r := database.CreateClient(0)
+	defer r.Close()
+
+	val, _ = r.Get(database.Ctx, id).Result()
+	if val != ""{
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"error":"URL custom short is already used",
+		})
+	} 
+
+	//checking expiry
+	if body.Expiry == 0 {
+		//setting expiry for the shortened url
+		body.Expiry = 24
+	}
+
+	//now we have to set the new url in our db
+	/*
+		for this particular id(key), in db we set the original url and the expiration of the
+		newly created shorten url
+		.Err is if we expect an error, we can take it in variable and then use it
+	*/
+	err = r.Set(database.Ctx, id, body.URL, body.Expiry*3600*time.Second).Err()
+	//if err exists
+	if err!=nil{
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":"unable to connect db server",
+		})
+	}
+
 
 	//for decrementing it, at last so that after its run on top, decremenet happens at last
 	r2.Decr(database.Ctx, c.IP())
