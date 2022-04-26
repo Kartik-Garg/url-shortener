@@ -5,10 +5,11 @@ import (
 	"strconv"
 	"time"
 	"url-shortener/database"
-	"url-shortner/helpers"
+	"url-shortener/helpers"
 	"github.com/go-redis/redis/v8"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/internal/uuid"
+	"github.com/asaskevich/govalidator"
 )
 
 //custom data-type
@@ -26,7 +27,7 @@ type response struct{
 	URL					string				`json:"url"`
 	CustomShort			string				`json:"short"`
 	//below are added so the user cant make unlimited number of requests
-	expiry				time.Duration		`json:"expiry"`
+	Expiry				time.Duration		`json:"expiry"`
 	XRateRemaining		int					`json:"rate_limit"`
 	XRateLimitReset		time.Duration		`json:"rate_limit_reset"`
 }
@@ -76,7 +77,9 @@ func ShortenUrl(c *fiber.Ctx) error{
 
 	//checking for domain error
 	if !helpers.RemoveDomainError(body.URL){
-		c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map)
+		c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+			"error" : "service is not available for this url",
+		})
 	}
 
 	//enforce HTTP and SSL
@@ -120,7 +123,26 @@ func ShortenUrl(c *fiber.Ctx) error{
 		})
 	}
 
+	//creating response which we want to sent to the user
+	resp := response{
+		URL: 				body.URL,
+		CustomShort: 		"",
+		Expiry:				body.Expiry,
+		XRateRemaining:		10,
+		XRateLimitReset:  	30,
+	}
 
 	//for decrementing it, at last so that after its run on top, decremenet happens at last
 	r2.Decr(database.Ctx, c.IP())
+
+	//after decrementing we need to fetch it again 
+	vald, _ := r2.Get(database.Ctx, c.IP()).Result()
+	resp.XRateRemaining, _ = strconv.Atoi(vald)
+
+	ttl, _ := r2.TTL(database.Ctx, c.IP()).Result()
+	resp.XRateLimitReset  = ttl / time.Nanosecond / time.Minute
+
+	resp.CustomShort = os.Getenv("DOMAIN") + "/" + id
+
+	return c.Status(fiber.StatusOK).JSON(resp)
 }
