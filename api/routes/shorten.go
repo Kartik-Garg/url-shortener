@@ -1,8 +1,12 @@
 package routes
 
 import (
+	"os"
+	"strconv"
 	"time"
+	"url-shortener/database"
 
+	"github.com/go-redis/redis/v8"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -39,6 +43,30 @@ func ShortenUrl(c *fiber.Ctx) error{
 	}
 
 	//implement rate limiting
+	//creating new client
+	r2 := database.CreateClient(1)
+	defer r2.Close()
+	//redis has get and set methods and we know it is key value pair db
+	//so we get here and then check the value
+	val, err := r2.Get(database.Ctx, c.IP()).Result()
+	//if we do not find any value in the redis db
+	if err == redis.Nil{
+		//30*60*time.second is basically the time as 30 mins before it gets reset and eror in case
+		//there are any error
+		_ =r2.Set(database.Ctx, c.IP(), os.Getenv("API_QUOTA"), 30*60*time.Second).Err()
+	} else{
+		val, _ := r2.Get(database.Ctx, c.IP()).Result()
+		//passing ip as key, getting the quota and then converting it to int and storing it in valInt
+		valInt, _ := strconv.Atoi(val)
+		if(valInt <= 0){
+			limit, _ := r2.TTL(database.Ctx, c.IP()).Result()
+			return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+				"error":"rate limit has exceeded",
+				"rate_limit_reset": limit / time.Nanosecond / time.Minute,
+			})
+		}
+	}
+
 
 	//checking if input is actual URl
 	if !govalidator.isURL(body.URL){
@@ -52,4 +80,7 @@ func ShortenUrl(c *fiber.Ctx) error{
 
 	//enforce HTTP and SSL
 	body.URL = helpers.EnforceHTTP(body.URL)
+
+	//for decrementing it, at last so that after its run on top, decremenet happens at last
+	r2.Decr(database.Ctx, c.IP())
 }
