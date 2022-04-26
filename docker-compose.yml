@@ -1,0 +1,18 @@
+version: '1'
+
+#two services since api has its own docker and db has its docker file
+services:
+  #api has command for building and running the go file
+  api:
+    build: api
+    ports:
+      - "3000:3000"
+    depends_on: 
+      - db  
+  #dp has command for setting up and running the redis db
+  db:
+    build: db
+    ports:
+      - "6379:6379"
+    volumes:
+      - .data:/data

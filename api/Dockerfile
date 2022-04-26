@@ -8,7 +8,7 @@ ADD . /build/
 #setting the work directory
 WORKDIR /build
 #similar to go build command used for compilation, creates executable file
-RUN go build -o main.
+RUN go build -o main .
 
 #stage 2
 FROM alpine
@@ -19,7 +19,7 @@ USER appuser
 #copy from current to app folder
 COPY . /app
 #copy from build/main to app folder , from tag here represents the stage
-COPY --from=builder /build/main /app
+COPY --from=builder /build/main /app/
 #change working or current directory
 WORKDIR /app
 
