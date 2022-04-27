@@ -23,8 +23,10 @@ WORKING:
    reset to 10 (30 mins by default)  
 4. User can then use GET/ request and input the recieved URL and it should redirect (GET is not working right now, I tried debugging it, but could not find the cause)
 5. After the user triggers the POST API, the data gets stored in the redis data base, which can be viewed
-6. To view the data in the redis DB: if docker desktop is running, inside the main container, click the console cli option on db container , and run the following          commads:
-   For all keys : redis-cli KEYS \*
-   To view data of particular key: redis-cli GET <key>
+6. To view the data in the redis DB: if docker desktop is running, inside the main container, click the console cli option on db container , and run the following        commads:
+   
+   .For all keys : redis-cli KEYS \*
+   .To view data of particular key: redis-cli GET <key>
+   
    Here, the data is stored as the main URL against the custom url/id 
     
