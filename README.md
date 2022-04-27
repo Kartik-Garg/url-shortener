@@ -1,6 +1,7 @@
 # url-shortener
 Url shortener service written in Golang using Redis and docker
-Technology used : Golang, Go-fiber, redis db and docker
+Technology used : Golang, Go-fiber, redis db and docker.
+
 Assignment:
 1. Able to create a Restful API where the user can give in the URL which they wish to shorten, they will get a shortened version
 2. The shortened version can be used with GET request which will redirect the user to the page (I have implemented the routes, but its not working with gofiber in the system)
